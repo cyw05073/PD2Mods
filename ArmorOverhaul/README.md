@@ -24,6 +24,7 @@ When your armor is down, you'll no longer be that crawling glass cannon desepera
 4. Ammo bonus/malus
 
 Some armors get an ammo pool bonus/malus. This is done for balancing purposes. Some armors will be too usefull if they had ammo bonus (think about an ICTV tank with 25% bonus ammo from the armor).
+Currently, two armors affect ammo pool (Suit reduces it by 25%, Flak Jacket increases it by 50%).
 
 5. Stat tweaking
 

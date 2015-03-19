@@ -12,10 +12,10 @@ function LocalizationManager:text( string_id, macros )
 	armortext["bm_menu_deflect_min_procent"] = "Max deflect chance"
 	armortext["bm_menu_deflect_max_dmg"] = "Dmg min deflect"
 	armortext["bm_menu_deflect_max_procent"] = "Min deflect chance"
-	armortext["bm_menu_hdr_min_dmg"] = "Max HDR dmg"
-	armortext["bm_menu_hdr_min_procent"] = "Max HDR value"
-	armortext["bm_menu_hdr_max_dmg"] = "Min HDR dmg"
-	armortext["bm_menu_hdr_max_procent"] = "Min HDR value"
+	armortext["bm_menu_hdr_min_dmg"] = "Min HDR dmg"
+	armortext["bm_menu_hdr_min_procent"] = "Min HDR value"
+	armortext["bm_menu_hdr_max_dmg"] = "Max HDR dmg"
+	armortext["bm_menu_hdr_max_procent"] = "Max HDR value"
 	
     if armortext[string_id] then return armortext[string_id] end
     return LocalizationManager_text(self, string_id, macros)
