@@ -129,14 +129,14 @@ function UpgradesTweakData:_init_pd2_values()
 			{6, 0.05}
 		}
 	}
-	-- Percentage of total armor regenerated per second
+	-- Amount of armor regenerated per second
 	self.values.player.body_armor.regen = {
-		1,
-		0.95,
-		0.875,
-		0.75,
-		0.65,
-		0.45,
-		0.25
+		2,
+		2.15,
+		2.3,
+		2.5,
+		3,
+		3.25,
+		4
 	}
 end

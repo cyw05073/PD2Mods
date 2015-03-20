@@ -54,7 +54,7 @@ function PlayerDamage:update(unit, t, dt)
 
 
 				if self:get_real_armor() < self:_max_armor() then
-					local regen = dt * self:_max_armor() * managers.player:body_armor_value("regen") / managers.player:body_armor_regen_multiplier(alive(self._unit) and self._unit:movement():current_state()._moving)
+					local regen = dt * managers.player:body_armor_value("regen") / managers.player:body_armor_regen_multiplier(alive(self._unit) and self._unit:movement():current_state()._moving)
 					self:restore_armor(regen)
 				end
 
@@ -237,6 +237,11 @@ function PlayerDamage:damage_bullet(attack_data)
 	if 0 >= self:get_real_armor() then
 		armor_reduction_multiplier = 1
 	end
+
+
+	local potential_damage = attack_data.damage
+
+
 	local health_subtracted = self:_calc_armor_damage(attack_data)
 	if attack_data.armor_piercing then
 		attack_data.damage = attack_data.damage - health_subtracted
@@ -246,7 +251,8 @@ function PlayerDamage:damage_bullet(attack_data)
 	health_subtracted = health_subtracted + self:_calc_health_damage(attack_data)
 	managers.player:activate_temporary_upgrade("temporary", "wolverine_health_regen")
 	self._next_allowed_dmg_t = Application:digest_value(managers.player:player_timer():time() + self._dmg_interval, true)
-	self._last_received_dmg = health_subtracted
+	self._last_received_dmg = potential_damage	--health_subtracted
+												-- Fixes the HDR bug causing health bar to be depleted too quickly, due to HDR fucking up damage values
 	if not self._bleed_out and health_subtracted > 0 then
 		self:_send_damage_drama(attack_data, health_subtracted)
 	elseif self._bleed_out and attack_data.attacker_unit and attack_data.attacker_unit:alive() and attack_data.attacker_unit:base()._tweak_table == "tank" then

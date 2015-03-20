@@ -1464,13 +1464,13 @@ function BlackMarketGui:_get_armor_stats(name)
 
 
 		elseif stat.name == "regen" then
-			local base = managers.player:body_armor_value("regen", upgrade_level) * (managers.player:body_armor_value("armor", upgrade_level) + PlayerDamage._ARMOR_INIT) * 10
-			local skill = managers.player:body_armor_regen_multiplier(false)
+			local base = managers.player:body_armor_value("regen", upgrade_level) * 10
+			local skill = 1 / managers.player:body_armor_regen_multiplier(false)
 			base_stats[stat.name] = {
 				value = math.round(base)
 			}
 			skill_stats[stat.name] = {
-				value = math.round(base * skill)
+				value = math.round(base * (skill - 1))
 			}
 		elseif stat.name == "deflect_min_dmg" then
 			local base = managers.player:body_armor_value("deflect", upgrade_level)[1][1] * 10
