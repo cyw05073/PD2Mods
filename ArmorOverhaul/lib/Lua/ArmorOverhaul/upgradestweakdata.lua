@@ -139,4 +139,13 @@ function UpgradesTweakData:_init_pd2_values()
 		3.25,
 		4
 	}
+	self.values.player.body_armor.explosion_damage_reduction = {
+		0,
+		0.02,
+		0.05,
+		0.1,
+		0.25,
+		0.2,
+		0.35
+	}
 end

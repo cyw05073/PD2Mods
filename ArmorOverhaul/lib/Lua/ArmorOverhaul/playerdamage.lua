@@ -262,6 +262,30 @@ function PlayerDamage:damage_bullet(attack_data)
 	self:_call_listeners(damage_info)
 end
 
+function PlayerDamage:_calc_armor_damage(attack_data)
+	local health_subtracted = 0
+	if 0 < self:get_real_armor() then
+		health_subtracted = self:get_real_armor()
+		self:set_armor(self:get_real_armor() - attack_data.damage)
+		health_subtracted = health_subtracted - self:get_real_armor()
+		self:_damage_screen()
+		managers.hud:set_player_armor({
+			current = self:get_real_armor(),
+			total = self:_total_armor(),
+			max = self:_max_armor()
+		})
+		SoundDevice:set_rtpc("shield_status", self:get_real_armor() / self:_total_armor() * 100)
+		self:_send_set_armor()
+		if 0 >= self:get_real_armor() then
+			self._unit:sound():play("player_armor_gone_stinger")
+			if attack_data.armor_piercing then
+				self._unit:sound():play("player_sniper_hit_armor_gone")
+			end
+		end
+	end
+	return health_subtracted
+end
+
 function PlayerDamage:_calc_health_damage(attack_data)
 	local health_subtracted = 0
 	health_subtracted = self:get_real_health()
@@ -297,4 +321,38 @@ function PlayerDamage:_calc_health_damage(attack_data)
 	self:_set_health_effect()
 	managers.statistics:health_subtracted(health_subtracted)
 	return health_subtracted
+end
+
+function PlayerDamage:damage_explosion(attack_data)
+	local damage_info = {
+		result = {type = "hurt", variant = "explosion"}
+	}
+	if self._god_mode or self._invulnerable then
+		self:_call_listeners(damage_info)
+		return
+	elseif self:incapacitated() then
+		return
+	end
+	local distance = mvector3.distance(attack_data.position, self._unit:position())
+	if distance > attack_data.range then
+		return
+	end
+	local damage = (attack_data.damage or 1) * (1 - distance / attack_data.range)
+	if self._bleed_out then
+		return
+	end
+	local dmg_mul = managers.player:temporary_upgrade_value("temporary", "dmg_dampener_outnumbered", 1) * managers.player:temporary_upgrade_value("temporary", "dmg_dampener_outnumbered_strong", 1) * managers.player:temporary_upgrade_value("temporary", "dmg_dampener_close_contact", 1) * managers.player:upgrade_value("player", "damage_dampener", 1) * managers.player:temporary_upgrade_value("temporary", "first_aid_damage_reduction", 1) * managers.player:temporary_upgrade_value("temporary", "passive_revive_damage_reduction", 1)
+	if self._unit:movement()._current_state and self._unit:movement()._current_state:_interacting() then
+		dmg_mul = dmg_mul * managers.player:upgrade_value("player", "interacting_damage_multiplier", 1)
+	end
+
+
+	dmg_mul = dmg_mul * (1 - managers.player:body_armor_value("explosion_damage_reduction"))
+
+
+	attack_data.damage = damage * dmg_mul
+	local armor_subtracted = self:_calc_armor_damage(attack_data)
+	attack_data.damage = attack_data.damage - (armor_subtracted or 0)
+	local health_subtracted = self:_calc_health_damage(attack_data)
+	self:_call_listeners(damage_info)
 end

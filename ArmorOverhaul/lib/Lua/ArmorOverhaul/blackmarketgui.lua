@@ -1003,6 +1003,7 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 					name = "damage_shake"
 				},
 				{name = "stamina"},
+				{name = "ammo_mul", procent = true, revert = true},
 				{name = "regen", procent = true, revert = true},
 				{name = "deflect_min_dmg"},
 				{name = "deflect_min_procent", procent = true, revert = true},
@@ -1011,7 +1012,8 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 				{name = "hdr_min_dmg"},
 				{name = "hdr_min_procent", procent = true, revert = true},
 				{name = "hdr_max_dmg"},
-				{name = "hdr_max_procent", procent = true, revert = true}
+				{name = "hdr_max_procent", procent = true, revert = true},
+				{name = "explosion_damage_reduction", procent = true, revert = true}
 			}
 			do
 				local x = 0
@@ -1075,9 +1077,9 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 						})
 						local size_mul = 1
 						if column.name == "name" then
-							if stat.name == "regen" then
+							if stat.name == "regen" or stat.name == "ammo_mul" then
 								size_mul = 0.875 
-							elseif stat.name == "deflect_min_dmg" or stat.name == "deflect_min_procent" or stat.name == "deflect_max_dmg" or stat.name == "deflect_max_procent" then
+							elseif stat.name == "deflect_min_dmg" or stat.name == "deflect_min_procent" or stat.name == "deflect_max_dmg" or stat.name == "deflect_max_procent" or stat.name == "explosion_damage_reduction" then
 								size_mul = 0.725
 							elseif stat.name == "hdr_min_dmg" or stat.name == "hdr_min_procent" or stat.name == "hdr_max_dmg" or stat.name == "hdr_max_procent" then
 								size_mul = 1
@@ -1467,10 +1469,10 @@ function BlackMarketGui:_get_armor_stats(name)
 			local base = managers.player:body_armor_value("regen", upgrade_level) * 10
 			local skill = 1 / managers.player:body_armor_regen_multiplier(false)
 			base_stats[stat.name] = {
-				value = math.round(base)
+				value = base
 			}
 			skill_stats[stat.name] = {
-				value = math.round(base * (skill - 1))
+				value = base * (skill - 1)
 			}
 		elseif stat.name == "deflect_min_dmg" then
 			local base = managers.player:body_armor_value("deflect", upgrade_level)[1][1] * 10
@@ -1544,6 +1546,24 @@ function BlackMarketGui:_get_armor_stats(name)
 			skill_stats[stat.name] = {
 				value = math.round(base * skill)
 			}
+		elseif stat.name == "explosion_damage_reduction" then
+			local base = managers.player:body_armor_value("explosion_damage_reduction", upgrade_level) * 100
+			local skill = 1
+			base_stats[stat.name] = {
+				value = base
+			}
+			skill_stats[stat.name] = {
+				value = base * (skill - 1)
+			}
+		elseif stat.name == "ammo_mul" then
+			local base = managers.player:body_armor_value("skill_ammo_mul", upgrade_level) * 100
+			local skill = 1
+			base_stats[stat.name] = {
+				value = base
+			}
+			skill_stats[stat.name] = {
+				value = base * (skill - 1)
+			}
 
 
 
@@ -1551,4 +1571,553 @@ function BlackMarketGui:_get_armor_stats(name)
 		skill_stats[stat.name].skill_in_effect = skill_stats[stat.name].skill_in_effect or skill_stats[stat.name].value ~= 0
 	end
 	return base_stats, mods_stats, skill_stats
+end
+
+function BlackMarketGui:show_stats()
+	if not self._stats_panel or not self._rweapon_stats_panel or not self._armor_stats_panel or not self._mweapon_stats_panel then
+		return
+	end
+	self._stats_panel:hide()
+	self._rweapon_stats_panel:hide()
+	self._armor_stats_panel:hide()
+	self._mweapon_stats_panel:hide()
+	if not self._slot_data then
+		return
+	end
+	if not self._slot_data.comparision_data then
+		return
+	end
+	local weapon = managers.blackmarket:get_crafted_category_slot(self._slot_data.category, self._slot_data.slot)
+	local name = weapon and weapon.weapon_id or self._slot_data.name
+	local category = self._slot_data.category
+	local slot = self._slot_data.slot
+	local value = 0
+	if tweak_data.weapon[self._slot_data.name] then
+		local equipped_item = managers.blackmarket:equipped_item(category)
+		local equipped_slot = managers.blackmarket:equipped_weapon_slot(category)
+		local equip_base_stats, equip_mods_stats, equip_skill_stats = self:_get_stats(equipped_item.weapon_id, category, equipped_slot)
+		local base_stats, mods_stats, skill_stats = self:_get_stats(name, category, slot)
+		self._rweapon_stats_panel:show()
+		self:hide_armor_stats()
+		self:hide_melee_weapon_stats()
+		self:set_stats_titles({name = "base", x = 170}, {
+			name = "mod",
+			text_id = "bm_menu_stats_mod",
+			color = tweak_data.screen_colors.stats_mods,
+			x = 215
+		}, {name = "skill", alpha = 0.75})
+		if slot ~= equipped_slot then
+			for _, title in pairs(self._stats_titles) do
+				title:hide()
+			end
+			self:set_stats_titles({name = "total", show = true}, {
+				name = "equip",
+				show = true,
+				text_id = "bm_menu_equipped",
+				alpha = 0.75,
+				x = 105
+			})
+		else
+			for _, title in pairs(self._stats_titles) do
+				title:show()
+			end
+			self:set_stats_titles({name = "total", hide = true}, {
+				name = "equip",
+				text_id = "bm_menu_stats_total",
+				alpha = 1,
+				x = 120
+			})
+		end
+		for _, stat in ipairs(self._stats_shown) do
+			self._stats_texts[stat.name].name:set_text(utf8.to_upper(managers.localization:text("bm_menu_" .. stat.name)))
+			value = math.max(base_stats[stat.name].value + mods_stats[stat.name].value + skill_stats[stat.name].value, 0)
+			if slot == equipped_slot then
+				local base = base_stats[stat.name].value
+				self._stats_texts[stat.name].equip:set_alpha(1)
+				self._stats_texts[stat.name].equip:set_text(value)
+				self._stats_texts[stat.name].base:set_text(base)
+				if mods_stats[stat.name].value ~= 0 or not "" then
+				end
+				self._stats_texts[stat.name].mods:set_text((0 < mods_stats[stat.name].value and "+" or "") .. (mods_stats[stat.name].value ~= 0 and mods_stats[stat.name].value or ""))
+				if skill_stats[stat.name].skill_in_effect then
+				else
+				end
+				self._stats_texts[stat.name].skill:set_text((0 < skill_stats[stat.name].value and "+" or "") .. (skill_stats[stat.name].value ~= 0 and skill_stats[stat.name].value or ""))
+				self._stats_texts[stat.name].total:set_text("")
+				if value > base then
+					self._stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.stats_positive)
+				elseif value < base then
+					self._stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.stats_negative)
+				else
+					self._stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.text)
+				end
+				self._stats_texts[stat.name].total:set_color(tweak_data.screen_colors.text)
+			else
+				local equip = math.max(equip_base_stats[stat.name].value + equip_mods_stats[stat.name].value + equip_skill_stats[stat.name].value, 0)
+				self._stats_texts[stat.name].equip:set_alpha(0.75)
+				self._stats_texts[stat.name].equip:set_text(equip)
+				self._stats_texts[stat.name].base:set_text("")
+				self._stats_texts[stat.name].mods:set_text("")
+				self._stats_texts[stat.name].skill:set_text("")
+				self._stats_texts[stat.name].total:set_text(value)
+				if value > equip then
+					self._stats_texts[stat.name].total:set_color(tweak_data.screen_colors.stats_positive)
+				elseif value < equip then
+					self._stats_texts[stat.name].total:set_color(tweak_data.screen_colors.stats_negative)
+				else
+					self._stats_texts[stat.name].total:set_color(tweak_data.screen_colors.text)
+				end
+				self._stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.text)
+			end
+		end
+	elseif tweak_data.blackmarket.armors[self._slot_data.name] then
+		local equipped_item = managers.blackmarket:equipped_item(category)
+		local equipped_slot = managers.blackmarket:equipped_armor_slot()
+		local equip_base_stats, equip_mods_stats, equip_skill_stats = self:_get_armor_stats(equipped_item)
+		local base_stats, mods_stats, skill_stats = self:_get_armor_stats(self._slot_data.name)
+		self._armor_stats_panel:show()
+		self:hide_weapon_stats()
+		self:hide_melee_weapon_stats()
+		self:set_stats_titles({name = "base", x = 185}, {
+			name = "mod",
+			text_id = "bm_menu_stats_skill",
+			color = tweak_data.screen_colors.resource,
+			x = 245
+		}, {name = "skill", alpha = 0})
+		if self._slot_data.name ~= equipped_slot then
+			for _, title in pairs(self._stats_titles) do
+				title:hide()
+			end
+			self:set_stats_titles({name = "total", show = true}, {
+				name = "equip",
+				show = true,
+				text_id = "bm_menu_equipped",
+				alpha = 0.75,
+				x = 105
+			})
+		else
+			for title_name, title in pairs(self._stats_titles) do
+				title:show()
+			end
+			self:set_stats_titles({name = "total", hide = true}, {
+				name = "equip",
+				text_id = "bm_menu_stats_total",
+				alpha = 1,
+				x = 120
+			})
+		end
+		for _, stat in ipairs(self._armor_stats_shown) do
+
+
+
+			local base_length = 0
+			local base_v = base_stats[stat.name].value
+			while base_v * 10 ~= math.round(base_v) * 10 do
+				base_v = base_v * 10
+				base_length = base_length + 1
+				if base_length >= 3 then break end
+			end
+			local base_format = "%0." .. base_length .. "f"
+
+			local skill_length = 0
+			local skill_v = skill_stats[stat.name].value
+			while skill_v * 10 ~= math.round(skill_v) * 10 do
+				skill_v = skill_v * 10
+				skill_length = skill_length + 1
+				if skill_length >= 3 then break end
+			end
+			local skill_format = "%0." .. skill_length .. "f"
+
+			local total_length = 0
+			local total_v = math.max(base_stats[stat.name].value + mods_stats[stat.name].value + skill_stats[stat.name].value, 0)
+			while total_v * 10 ~= math.round(total_v) * 10 do
+				total_v = total_v * 10
+				total_length = total_length + 1
+				if total_length >= 3 then break end
+			end
+			local total_format = "%0." .. total_length .. "f"
+
+
+
+			self._armor_stats_texts[stat.name].name:set_text(utf8.to_upper(managers.localization:text("bm_menu_" .. stat.name)))
+			value = math.max(base_stats[stat.name].value + mods_stats[stat.name].value + skill_stats[stat.name].value, 0)
+			if self._slot_data.name == equipped_slot then
+				local base = base_stats[stat.name].value
+				self._armor_stats_texts[stat.name].equip:set_alpha(1)
+				self._armor_stats_texts[stat.name].equip:set_text(string.format(total_format, value))
+				self._armor_stats_texts[stat.name].base:set_text(string.format(base_format, base))
+				if skill_stats[stat.name].skill_in_effect then
+				else
+				end
+				local v = string.format(skill_format, (skill_stats[stat.name].value ~= 0 and skill_stats[stat.name].value or 0))
+				self._armor_stats_texts[stat.name].skill:set_text((0 < skill_stats[stat.name].value and "+" or "") .. (v ~= "0" and v or ""))
+				self._armor_stats_texts[stat.name].total:set_text("")
+				self._armor_stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.text)
+				if value ~= 0 and value > base then
+					self._armor_stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.stats_positive)
+				elseif value ~= 0 and value < base then
+					self._armor_stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.stats_negative)
+				else
+					self._armor_stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.text)
+				end
+				self._armor_stats_texts[stat.name].total:set_color(tweak_data.screen_colors.text)
+			else
+				local equip = math.max(equip_base_stats[stat.name].value + equip_mods_stats[stat.name].value + equip_skill_stats[stat.name].value, 0)
+				self._armor_stats_texts[stat.name].equip:set_alpha(0.75)
+				self._armor_stats_texts[stat.name].equip:set_text(string.format(total_format, equip))
+				self._armor_stats_texts[stat.name].base:set_text("")
+				self._armor_stats_texts[stat.name].skill:set_text("")
+				self._armor_stats_texts[stat.name].total:set_text(string.format(total_format, value))
+				if value > equip then
+					self._armor_stats_texts[stat.name].total:set_color(tweak_data.screen_colors.stats_positive)
+				elseif value < equip then
+					self._armor_stats_texts[stat.name].total:set_color(tweak_data.screen_colors.stats_negative)
+				else
+					self._armor_stats_texts[stat.name].total:set_color(tweak_data.screen_colors.text)
+				end
+				self._armor_stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.text)
+			end
+		end
+	elseif tweak_data.blackmarket.melee_weapons[self._slot_data.name] then
+		self:hide_armor_stats()
+		self:hide_weapon_stats()
+		self._mweapon_stats_panel:show()
+		self:set_stats_titles({name = "base", x = 185}, {
+			name = "mod",
+			text_id = "bm_menu_stats_skill",
+			color = tweak_data.screen_colors.resource,
+			x = 245
+		}, {name = "skill", alpha = 0})
+		local equipped_item = managers.blackmarket:equipped_item(category)
+		local equip_base_stats, equip_mods_stats, equip_skill_stats = self:_get_melee_weapon_stats(equipped_item)
+		local base_stats, mods_stats, skill_stats = self:_get_melee_weapon_stats(self._slot_data.name)
+		if self._slot_data.name ~= equipped_item then
+			for _, title in pairs(self._stats_titles) do
+				title:hide()
+			end
+			self:set_stats_titles({name = "total", show = true}, {
+				name = "equip",
+				show = true,
+				text_id = "bm_menu_equipped",
+				alpha = 0.75,
+				x = 105
+			})
+		else
+			for title_name, title in pairs(self._stats_titles) do
+				title:show()
+			end
+			self:set_stats_titles({name = "total", hide = true}, {
+				name = "equip",
+				text_id = "bm_menu_stats_total",
+				alpha = 1,
+				x = 120
+			})
+		end
+		local value_min, value_max, skill_value_min, skill_value_max, skill_value
+		for _, stat in ipairs(self._mweapon_stats_shown) do
+			self._mweapon_stats_texts[stat.name].name:set_text(utf8.to_upper(managers.localization:text("bm_menu_" .. stat.name)))
+			if stat.range then
+				value_min = math.max(base_stats[stat.name].min_value + mods_stats[stat.name].min_value + skill_stats[stat.name].min_value, 0)
+				value_max = math.max(base_stats[stat.name].max_value + mods_stats[stat.name].max_value + skill_stats[stat.name].max_value, 0)
+			end
+			value = math.max(base_stats[stat.name].value + mods_stats[stat.name].value + skill_stats[stat.name].value, 0)
+			if self._slot_data.name == equipped_item then
+				local base, base_min, base_max, skill, skill_min, skill_max
+				if stat.range then
+					base_min = base_stats[stat.name].min_value
+					base_max = base_stats[stat.name].max_value
+					skill_min = skill_stats[stat.name].min_value
+					skill_max = skill_stats[stat.name].max_value
+				end
+				base = base_stats[stat.name].value
+				skill = skill_stats[stat.name].value
+				local format_string = "%0." .. tostring(stat.num_decimals or 0) .. "f"
+				local equip_text = value and string.format(format_string, value)
+				local base_text = base and string.format(format_string, base)
+				local skill_text = skill_stats[stat.name].value and string.format(format_string, skill_stats[stat.name].value)
+				local base_min_text = base_min and string.format(format_string, base_min)
+				local base_max_text = base_max and string.format(format_string, base_max)
+				local value_min_text = value_min and string.format(format_string, value_min)
+				local value_max_text = value_max and string.format(format_string, value_max)
+				local skill_min_text = skill_min and string.format(format_string, skill_min)
+				local skill_max_text = skill_max and string.format(format_string, skill_max)
+
+				skill_text = string.sub(skill_text, 1, 1) ~= "0" and skill_text or ""
+				skill_min_text = skill_min_text ~= "0" and skill_min_text or ""
+				skill_max_text = skill_max_text ~= "0" and skill_max_text or ""
+
+				if stat.range then
+					if base_min ~= base_max then
+						base_text = base_min_text .. " (" .. base_max_text .. ")"
+					end
+					if value_min ~= value_max then
+						equip_text = value_min_text .. " (" .. value_max_text .. ")"
+					end
+					if skill_min ~= skill_max then
+						skill_text = skill_min_text .. " (" .. skill_max_text .. ")"
+					end
+				end
+				if stat.suffix then
+					base_text = base_text .. tostring(stat.suffix)
+					equip_text = equip_text .. tostring(stat.suffix)
+					skill_text = skill_text .. tostring(stat.suffix)
+				end
+				if stat.prefix then
+					base_text = tostring(stat.prefix) .. base_text
+					equip_text = tostring(stat.prefix) .. equip_text
+					skill_text = tostring(stat.prefix) .. skill_text
+				end
+				self._mweapon_stats_texts[stat.name].equip:set_alpha(1)
+				self._mweapon_stats_texts[stat.name].equip:set_text(equip_text)
+				self._mweapon_stats_texts[stat.name].base:set_text(base_text)
+				if skill_stats[stat.name].skill_in_effect then
+				else
+				end
+				self._mweapon_stats_texts[stat.name].skill:set_text((0 < skill_stats[stat.name].value and "+" or "") .. skill_text or "")
+				self._mweapon_stats_texts[stat.name].total:set_text("")
+				self._mweapon_stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.text)
+				local positive = value ~= 0 and value > base
+				local negative = value ~= 0 and value < base
+				if stat.inverse then
+					local temp = positive
+					positive = negative
+					negative = temp
+				end
+				if stat.range then
+					if positive then
+						self._mweapon_stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.stats_positive)
+					elseif negative then
+						self._mweapon_stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.stats_negative)
+					end
+				elseif positive then
+					self._mweapon_stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.stats_positive)
+				elseif negative then
+					self._mweapon_stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.stats_negative)
+				else
+					self._mweapon_stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.text)
+				end
+				self._mweapon_stats_texts[stat.name].total:set_color(tweak_data.screen_colors.text)
+			else
+				local equip, equip_min, equip_max
+				if stat.range then
+					equip_min = math.max(equip_base_stats[stat.name].min_value + equip_mods_stats[stat.name].min_value + equip_skill_stats[stat.name].min_value, 0)
+					equip_max = math.max(equip_base_stats[stat.name].max_value + equip_mods_stats[stat.name].max_value + equip_skill_stats[stat.name].max_value, 0)
+				end
+				equip = math.max(equip_base_stats[stat.name].value + equip_mods_stats[stat.name].value + equip_skill_stats[stat.name].value, 0)
+				local format_string = "%0." .. tostring(stat.num_decimals or 0) .. "f"
+				local equip_text = equip and string.format(format_string, equip)
+				local total_text = value and string.format(format_string, value)
+				local equip_min_text = equip_min and string.format(format_string, equip_min)
+				local equip_max_text = equip_max and string.format(format_string, equip_max)
+				local total_min_text = value_min and string.format(format_string, value_min)
+				local total_max_text = value_max and string.format(format_string, value_max)
+				local color_ranges = {}
+				if stat.range then
+					if equip_min ~= equip_max then
+						equip_text = equip_min_text .. " (" .. equip_max_text .. ")"
+					end
+					if value_min ~= value_max then
+						total_text = total_min_text .. " (" .. total_max_text .. ")"
+					end
+				end
+				if stat.suffix then
+					equip_text = equip_text .. tostring(stat.suffix)
+					total_text = total_text .. tostring(stat.suffix)
+				end
+				if stat.prefix then
+					equip_text = tostring(stat.prefix) .. equip_text
+					total_text = tostring(stat.prefix) .. total_text
+				end
+				self._mweapon_stats_texts[stat.name].equip:set_alpha(0.75)
+				self._mweapon_stats_texts[stat.name].equip:set_text(equip_text)
+				self._mweapon_stats_texts[stat.name].base:set_text("")
+				self._mweapon_stats_texts[stat.name].skill:set_text("")
+				self._mweapon_stats_texts[stat.name].total:set_text(total_text)
+				if stat.range then
+					local positive = value_min > equip_min
+					local negative = value_min < equip_min
+					if stat.inverse then
+						local temp = positive
+						positive = negative
+						negative = temp
+					end
+					local color_range_min = {
+						start = 0,
+						stop = utf8.len(total_min_text),
+						color = nil
+					}
+					if positive then
+						color_range_min.color = tweak_data.screen_colors.stats_positive
+					elseif negative then
+						color_range_min.color = tweak_data.screen_colors.stats_negative
+					else
+						color_range_min.color = tweak_data.screen_colors.text
+					end
+					table.insert(color_ranges, color_range_min)
+					positive = value_max > equip_max
+					negative = value_max < equip_max
+					if stat.inverse then
+						local temp = positive
+						positive = negative
+						negative = temp
+					end
+					local color_range_max = {
+						start = color_range_min.stop + 1,
+						stop = nil,
+						color = nil
+					}
+					color_range_max.stop = color_range_max.start + 3 + utf8.len(total_max_text)
+					if positive then
+						color_range_max.color = tweak_data.screen_colors.stats_positive
+					elseif negative then
+						color_range_max.color = tweak_data.screen_colors.stats_negative
+					else
+						color_range_max.color = tweak_data.screen_colors.text
+					end
+					table.insert(color_ranges, color_range_max)
+				else
+					local positive = value > equip
+					local negative = value < equip
+					if stat.inverse then
+						local temp = positive
+						positive = negative
+						negative = temp
+					end
+					local color_range = {
+						start = 0,
+						stop = utf8.len(equip_text),
+						color = nil
+					}
+					if positive then
+						color_range.color = tweak_data.screen_colors.stats_positive
+					elseif negative then
+						color_range.color = tweak_data.screen_colors.stats_negative
+					else
+						color_range.color = tweak_data.screen_colors.text
+					end
+					table.insert(color_ranges, color_range)
+				end
+				self._mweapon_stats_texts[stat.name].total:set_color(tweak_data.screen_colors.text)
+				self._mweapon_stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.text)
+				for _, color_range in ipairs(color_ranges) do
+					self._mweapon_stats_texts[stat.name].total:set_range_color(color_range.start, color_range.stop, color_range.color)
+				end
+			end
+		end
+	else
+		--[[local equip, stat_changed
+		local tweak_parts = tweak_data.weapon.factory.parts[self._slot_data.name]
+		local mod_stats = self:_get_stats_for_mod(self._slot_data.name, name, category, slot)
+		local hide_equip = mod_stats.equip.name == mod_stats.chosen.name
+		self._rweapon_stats_panel:show()
+		self:hide_armor_stats()
+		self:hide_melee_weapon_stats()
+		for _, title in pairs(self._stats_titles) do
+			title:hide()
+		end
+		if not mod_stats.equip.name then
+			self._stats_titles.equip:hide()
+		else
+			self._stats_titles.equip:show()
+			self._stats_titles.equip:set_text(utf8.to_upper(managers.localization:text("bm_menu_equipped")))
+			self._stats_titles.equip:set_alpha(0.75)
+			self._stats_titles.equip:set_x(105)
+		end
+		if not hide_equip then
+			self._stats_titles.total:show()
+		end
+		for _, stat in ipairs(self._stats_shown) do
+			self._stats_texts[stat.name].name:set_text(utf8.to_upper(managers.localization:text("bm_menu_" .. stat.name)))
+			value = mod_stats.chosen[stat.name]
+			equip = mod_stats.equip[stat.name]
+			if tweak_parts then
+			else
+				stat_changed = tweak_parts.stats[stat.stat_name or stat.name] and value ~= 0 and 1 or 0.5
+			end
+			for stat_name, stat_text in pairs(self._stats_texts[stat.name]) do
+				if stat_name ~= "name" then
+					stat_text:set_text("")
+				end
+			end
+			for name, column in pairs(self._stats_texts[stat.name]) do
+				column:set_alpha(stat_changed)
+			end
+			if not hide_equip and stat_changed == 1 then
+			else
+			end
+			self._stats_texts[stat.name].total:set_text((value > 0 and "+" or "") .. value or "")
+			if equip ~= 0 or not "" then
+			end
+			self._stats_texts[stat.name].equip:set_text((equip > 0 and "+" or "") .. equip)
+			self._stats_texts[stat.name].equip:set_alpha(0.75)
+			if value > equip then
+				self._stats_texts[stat.name].total:set_color(tweak_data.screen_colors.stats_positive)
+			elseif value < equip then
+				self._stats_texts[stat.name].total:set_color(tweak_data.screen_colors.stats_negative)
+			else
+				self._stats_texts[stat.name].total:set_color(tweak_data.screen_colors.text)
+			end
+			self._stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.text)
+		end]]
+		local equip, stat_changed
+		local tweak_parts = tweak_data.weapon.factory.parts[self._slot_data.name]
+		local mod_stats = self:_get_stats_for_mod(self._slot_data.name, name, category, slot)
+		local hide_equip = mod_stats.equip.name == mod_stats.chosen.name
+		self._rweapon_stats_panel:show()
+		self:hide_armor_stats()
+		self:hide_melee_weapon_stats()
+		for _, title in pairs(self._stats_titles) do title:hide() end
+		if not mod_stats.equip.name then
+			self._stats_titles.equip:hide()
+		else
+			self._stats_titles.equip:show()
+			self._stats_titles.equip:set_text(utf8.to_upper(managers.localization:text("bm_menu_equipped")))
+			self._stats_titles.equip:set_alpha(0.75)
+			self._stats_titles.equip:set_x(105)
+		end
+
+		if not hide_equip then self._stats_titles.total:show() end
+		for i, stat in ipairs(self._stats_shown) do
+			self._stats_texts[stat.name].name:set_text(utf8.to_upper(managers.localization:text("bm_menu_" .. stat.name)))
+			value = mod_stats.chosen[stat.name]
+			equip = mod_stats.equip[stat.name]
+			stat_changed = tweak_parts and tweak_parts.stats[stat.stat_name or stat.name] and value ~= 0 and 1 or 0.5
+
+			for stat_name, stat_text in pairs(self._stats_texts[stat.name]) do if stat_name ~= "name" then stat_text:set_text("") end end
+			for name, column in pairs(self._stats_texts[stat.name]) do column:set_alpha(stat_changed) end
+			
+			local decimals = (stat.name == "magazine" or stat.name == "totalammo" or stat.name == "concealment") and "%0.0f" or "%0.2f"
+			local value2, equip2
+			value2 = value
+			equip2 = equip
+			self._stats_texts[stat.name].total:set_text(not hide_equip and stat_changed == 1 and (( value > 0 and "+" or "") .. string.format(decimals, value2) or ""))
+			self._stats_texts[stat.name].equip:set_text((equip == 0 and "") or (equip > 0 and "+" or "") .. string.format(decimals, equip2))
+			self._stats_texts[stat.name].equip:set_alpha(0.75)
+			if value > equip then
+				self._stats_texts[stat.name].total:set_color(tweak_data.screen_colors.stats_positive)
+			elseif value < equip then
+				self._stats_texts[stat.name].total:set_color(tweak_data.screen_colors.stats_negative)
+			else
+				self._stats_texts[stat.name].total:set_color(tweak_data.screen_colors.text)
+			end
+			self._stats_texts[stat.name].equip:set_color(tweak_data.screen_colors.text)
+		end
+	end
+	local modslist_panel = self._stats_panel:child("modslist_panel")
+	local y = 0
+	if self._rweapon_stats_panel:visible() then
+		for i, child in ipairs(self._rweapon_stats_panel:children()) do
+			y = math.max(y, child:bottom())
+		end
+	elseif self._armor_stats_panel:visible() then
+		for i, child in ipairs(self._armor_stats_panel:children()) do
+			y = math.max(y, child:bottom())
+		end
+	elseif self._mweapon_stats_panel:visible() then
+		for i, child in ipairs(self._mweapon_stats_panel:children()) do
+			y = math.max(y, child:bottom())
+		end
+	end
+	modslist_panel:set_top(y + 10)
+	self._stats_panel:show()
 end

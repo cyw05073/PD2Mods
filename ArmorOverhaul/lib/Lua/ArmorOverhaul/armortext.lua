@@ -16,6 +16,8 @@ function LocalizationManager:text( string_id, macros )
 	armortext["bm_menu_hdr_min_procent"] = "Min HDR value"
 	armortext["bm_menu_hdr_max_dmg"] = "Max HDR dmg"
 	armortext["bm_menu_hdr_max_procent"] = "Max HDR value"
+	armortext["bm_menu_explosion_damage_reduction"] = "Explosion damage reduction"
+	armortext["bm_menu_ammo_mul"] = "Ammo multiplier"
 	
     if armortext[string_id] then return armortext[string_id] end
     return LocalizationManager_text(self, string_id, macros)
