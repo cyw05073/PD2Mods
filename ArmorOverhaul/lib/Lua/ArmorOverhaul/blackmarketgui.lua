@@ -543,6 +543,20 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 				pc_btn = Idstring("menu_preview_item"),
 				name = "bm_menu_btn_preview_melee_weapon",
 				callback = callback(self, self, "preview_melee_weapon_callback")
+			},
+			lo_g_equip = {
+				prio = 1,
+				btn = "BTN_A",
+				pc_btn = nil,
+				name = "bm_menu_btn_equip_grenade",
+				callback = callback(self, self, "lo_equip_grenade_callback")
+			},
+			lo_g_preview = {
+				prio = 2,
+				btn = "BTN_STICK_R",
+				pc_btn = Idstring("menu_preview_item"),
+				name = "bm_menu_btn_preview_grenade",
+				callback = callback(self, self, "preview_grenade_callback")
 			}
 		}
 		local get_real_font_sizes = false
