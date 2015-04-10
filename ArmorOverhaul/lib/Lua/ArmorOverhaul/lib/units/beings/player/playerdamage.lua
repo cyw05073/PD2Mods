@@ -66,7 +66,7 @@ function PlayerDamage:update(unit, t, dt)
 				-- Armor progressive regeneration
 
 
-				if self:get_real_armor() < self:_max_armor() then
+				if self:get_real_armor() < self:_max_armor() - 0.025 then
 					local regen = dt * managers.player:ap_regen_value(armor_data, self._armor_suppress > 0)
 					self:restore_armor(regen)
 					self._armor_regenerating = true
