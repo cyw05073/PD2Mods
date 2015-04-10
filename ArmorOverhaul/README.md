@@ -75,7 +75,7 @@ What to postrequire ?
 - armortext.lua to lib/managers/localizationmanager
 
 Note: if you already use DMCWO (or another mod touching to localizationmanager), put the content of the method (all the armortext[...] = ...) into the corresponding script (in realnames.lua for DMCWO e.g.) and rename the armortext accordingly.
-armortext.lua is here to fill in the new stat names in the blackmarket. Those two scripts are optional, but recommended.
+localizationmanager.lua (located in managers) is here to fill in the new stat names in the blackmarket, introduced with blackmarketgui.lua (located in managers/lua). Those two scripts are optional, but recommended.
 
 <h4>Known bugs</h4>
 

@@ -45,9 +45,9 @@ function SkillTreeTweakData:init()
 		["icon_xy"] = {3, 1},
 		[1] = {
 			upgrades = {
-				"body_armor11"
+				"body_armor10"
 			},
-			cost = self.costs.default
+			cost = self.costs.hightier
 		},
 		[2] = {
 			upgrades = {
@@ -56,7 +56,7 @@ function SkillTreeTweakData:init()
 				"player_level_11_movement_addend",
 				"player_level_11_stamina_addend"
 			},
-			cost = self.costs.pro
+			cost = self.costs.hightierpro
 		}
 	}
 	self.skills.sentry_targeting_package = {

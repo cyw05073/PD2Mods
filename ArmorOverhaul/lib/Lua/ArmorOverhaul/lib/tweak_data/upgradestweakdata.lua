@@ -265,7 +265,7 @@ function UpgradesTweakData:_init_pd2_values()
 	self.values.player.level_10_dodge_addend = {0.25}
 	self.values.player.level_11_edr_addend = {0.15}
 	self.values.player.level_11_hp_addend = {1}
-	self.values.player.level_11_movement_addend = {0.15}
+	self.values.player.level_11_movement_addend = {5.25}
 	self.values.player.level_11_stamina_multiplier = {3}
 end
 
@@ -329,7 +329,6 @@ function UpgradesTweakData:_player_definitions()
 	}
 	self.definitions.player_level_10_dodge_addend = {
 		category = "feature",
-		incremental = true,
 		name_id = "menu_player_level_10_dodge_addend",
 		upgrade = {
 			category = "player",
@@ -339,7 +338,6 @@ function UpgradesTweakData:_player_definitions()
 	}
 	self.definitions.player_level_11_edr_addend = {
 		category = "feature",
-		incremental = true,
 		name_id = "menu_player_level_11_edr_addend",
 		upgrade = {
 			category = "player",
@@ -349,7 +347,6 @@ function UpgradesTweakData:_player_definitions()
 	}
 	self.definitions.player_level_11_hp_addend = {
 		category = "feature",
-		incremental = true,
 		name_id = "menu_player_level_11_hp_addend",
 		upgrade = {
 			category = "player",
@@ -359,7 +356,6 @@ function UpgradesTweakData:_player_definitions()
 	}
 	self.definitions.player_level_11_movement_addend = {
 		category = "feature",
-		incremental = true,
 		name_id = "menu_player_level_11_movement_addend",
 		upgrade = {
 			category = "player",
@@ -369,7 +365,6 @@ function UpgradesTweakData:_player_definitions()
 	}
 	self.definitions.player_level_11_stamina_multiplier = {
 		category = "feature",
-		incremental = true,
 		name_id = "menu_player_level_11_stamina_multiplier",
 		upgrade = {
 			category = "player",

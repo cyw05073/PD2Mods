@@ -1441,7 +1441,7 @@ function BlackMarketGui:_get_armor_stats(name)
 			local base_value = math.round(movement_penalty * base)
 			base_stats[stat.name] = {value = base_value}
 			local skill_mod = managers.player:movement_speed_multiplier(false, false, upgrade_level)
-			local skill_value = math.round(skill_mod * base) - base_value
+			local skill_value = math.round(skill_mod * base) + managers.player:upgrade_value("player", name .. "_movement_addend", 0) - base_value
 			skill_stats[stat.name] = {value = skill_value}
 			skill_stats[stat.name].skill_in_effect = skill_value > 0
 		elseif stat.name == "dodge" then
@@ -1473,7 +1473,7 @@ function BlackMarketGui:_get_armor_stats(name)
 			local skill = managers.player:stamina_multiplier()
 			local base_value = base
 			local mod_value = base * mod - base_value
-			local skill_value = base * mod * skill - base_value - mod_value
+			local skill_value = base * mod * skill - base_value - mod_value + managers.player:upgrade_value("player", name .. "_stamina_multiplier", 0)
 			base_stats[stat.name] = {
 				value = math.round(base_value + mod_value)
 			}
@@ -1485,7 +1485,7 @@ function BlackMarketGui:_get_armor_stats(name)
 
 		elseif stat.name == "regen" then
 			local base = managers.player:body_armor_value("regen", upgrade_level) * 10
-			local skill = 1 / managers.player:body_armor_regen_multiplier(false)
+			local skill = 1 / managers.player:body_armor_regen_multiplier(false) + managers.player:upgrade_value("player", name .. "_armor_regen_addend", 0)
 			base_stats[stat.name] = {
 				value = base
 			}
@@ -1503,12 +1503,12 @@ function BlackMarketGui:_get_armor_stats(name)
 			}
 		elseif stat.name == "deflect_min_procent" then
 			local base = managers.player:body_armor_value("deflect", upgrade_level)[1][2] * 100
-			local skill = 0
+			local skill = managers.player:upgrade_value("player", name .. "_deflect_chance_addend", 0)
 			base_stats[stat.name] = {
 				value = math.round(base)
 			}
 			skill_stats[stat.name] = {
-				value = math.round(base * skill)
+				value = skill
 			}
 		elseif stat.name == "deflect_max_dmg" then
 			local base = managers.player:body_armor_value("deflect", upgrade_level)[2][1] * 10
@@ -1521,12 +1521,12 @@ function BlackMarketGui:_get_armor_stats(name)
 			}
 		elseif stat.name == "deflect_max_procent" then
 			local base = managers.player:body_armor_value("deflect", upgrade_level)[2][2] * 100
-			local skill = 0
+			local skill = managers.player:upgrade_value("player", name .. "_deflect_chance_addend", 0)
 			base_stats[stat.name] = {
 				value = math.round(base)
 			}
 			skill_stats[stat.name] = {
-				value = math.round(base * skill)
+				value = skill
 			}
 		elseif stat.name == "hdr_min_dmg" then
 			local base = managers.player:body_armor_value("health_damage_reduction", upgrade_level)[1][1] * 10
@@ -1566,12 +1566,12 @@ function BlackMarketGui:_get_armor_stats(name)
 			}
 		elseif stat.name == "explosion_damage_reduction" then
 			local base = managers.player:body_armor_value("explosion_damage_reduction", upgrade_level) * 100
-			local skill = 1
+			local skill = managers.player:upgrade_value("player", name .. "_edr_addend", 0)
 			base_stats[stat.name] = {
 				value = base
 			}
 			skill_stats[stat.name] = {
-				value = base * (skill - 1)
+				value = skill
 			}
 		elseif stat.name == "ammo_mul" then
 			local base = managers.player:body_armor_value("skill_ammo_mul", upgrade_level) * 100
@@ -1584,7 +1584,7 @@ function BlackMarketGui:_get_armor_stats(name)
 			}
 		elseif stat.name == "hp_addend" then
 			local base = managers.player:body_armor_value("hp_addend", upgrade_level) * 10
-			local skill = managers.player:upgrade_value("player", tweak_data.blackmarket.armors[managers.blackmarket:equipped_armor(true)].upgrade_level .. "_hp_addend", 0) * 10
+			local skill = managers.player:upgrade_value("player", name .. "_hp_addend", 0) * 10
 			base_stats[stat.name] = {
 				value = base
 			}
@@ -1601,7 +1601,7 @@ function BlackMarketGui:_get_armor_stats(name)
 				value = base * (skill - 1)
 			}
 
-
+			
 
 		end
 		skill_stats[stat.name].skill_in_effect = skill_stats[stat.name].skill_in_effect or skill_stats[stat.name].value ~= 0
