@@ -23,7 +23,7 @@ end
 
 function PlayerManager:movement_speed_multiplier(speed_state, bonus_multiplier, upgrade_level)
 	local multiplier = 1
-	local armor_penalty = self:mod_movement_penalty(self:body_armor_value("movement", upgrade_level, 1) + managers.player:upgrade_value("player", tostring(managers.blackmarket:equipped_armor(true)) .. "_movement_addend", 0))
+	local armor_penalty = self:mod_movement_penalty(self:body_armor_value("movement", upgrade_level, 1) + (managers.player:upgrade_value("player", tostring(managers.blackmarket:equipped_armor(true)) .. "_movement_addend", 0)) / (tweak_data.player.movement_state.standard.movement.speed.STANDARD_MAX / 10)
 	multiplier = multiplier + armor_penalty - 1
 	if bonus_multiplier then
 		multiplier = multiplier + bonus_multiplier - 1

@@ -1566,7 +1566,7 @@ function BlackMarketGui:_get_armor_stats(name)
 			}
 		elseif stat.name == "explosion_damage_reduction" then
 			local base = managers.player:body_armor_value("explosion_damage_reduction", upgrade_level) * 100
-			local skill = managers.player:upgrade_value("player", name .. "_edr_addend", 0)
+			local skill = managers.player:upgrade_value("player", name .. "_edr_addend", 0) * 100
 			base_stats[stat.name] = {
 				value = base
 			}
