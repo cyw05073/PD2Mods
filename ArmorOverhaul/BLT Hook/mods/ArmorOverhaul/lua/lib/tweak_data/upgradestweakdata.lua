@@ -86,12 +86,12 @@ function UpgradesTweakData:_init_pd2_values()
 		1,
 		1,
 		1,
-		1.5,
+		1.35,
 		1,
 		1,
 		1,
-		1.25,
-		0.34,
+		1.4,
+		0.35,
 		1
 	}
 
@@ -255,8 +255,8 @@ function UpgradesTweakData:_init_pd2_values()
 		0.65,
 		0.775,
 		0.85,
-		1.05,
-		0.15
+		1.1,
+		0.2
 	}
 	self.values.player.level_8_hp_regen_addend = {0.1}
 	self.values.player.level_9_armor_regen_addend = {1}

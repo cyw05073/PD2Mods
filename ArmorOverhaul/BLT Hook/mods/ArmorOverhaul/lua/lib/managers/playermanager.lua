@@ -23,7 +23,7 @@ end
 
 function PlayerManager:movement_speed_multiplier(speed_state, bonus_multiplier, upgrade_level)
 	local multiplier = 1
-	local armor_penalty = self:mod_movement_penalty(self:body_armor_value("movement", upgrade_level, 1)) + (managers.player:upgrade_value("player", tostring(managers.blackmarket:equipped_armor(true)) .. "_movement_addend", 0)) / (tweak_data.player.movement_state.standard.movement.speed.STANDARD_MAX / 10)
+	local armor_penalty = self:mod_movement_penalty(self:body_armor_value("movement", upgrade_level, 1)) + (managers.player:upgrade_value("player", (upgrade_level and ("level_" .. upgrade_level) or tostring(managers.blackmarket:equipped_armor(true))) .. "_movement_addend", 0)) / (tweak_data.player.movement_state.standard.movement.speed.STANDARD_MAX / 10)
 	multiplier = multiplier + armor_penalty - 1
 	if bonus_multiplier then
 		multiplier = multiplier + bonus_multiplier - 1
@@ -48,23 +48,23 @@ function PlayerManager:movement_speed_multiplier(speed_state, bonus_multiplier, 
 	return multiplier
 end
 
-function PlayerManager:stamina_multiplier()
+function PlayerManager:stamina_multiplier(upgrade_level)
 	local multiplier = 1
 	multiplier = multiplier + self:upgrade_value("player", "stamina_multiplier", 1) - 1
 	multiplier = multiplier + self:team_upgrade_value("stamina", "multiplier", 1) - 1
 	multiplier = multiplier + self:team_upgrade_value("stamina", "passive_multiplier", 1) - 1
 	multiplier = multiplier + self:get_hostage_bonus_multiplier("stamina") - 1
-	multiplier = multiplier + self:upgrade_value("player", tostring(managers.blackmarket:equipped_armor(true)) .. "_stamina_multiplier", 1) - 1
+	multiplier = multiplier + self:upgrade_value("player", (upgrade_level and ("level_" .. upgrade_level) or tostring(managers.blackmarket:equipped_armor(true))) .. "_stamina_multiplier", 1) - 1
 	return multiplier
 end
 
-function PlayerManager:ap_regen_value(armor_data, suppressed)
-	local suppression_mul = 0.25
+function PlayerManager:ap_regen_value(armor_data, suppression)
+	local suppression_mul = 1 - suppression
 	suppression_mul = 1 - ((1 - suppression_mul) * self:upgrade_value("player", "suppression_armor_regen_multiplier", 1))
 	local value = tweak_data.player.damage.AP_REGEN_INIT or 0
 	value = value + managers.player:body_armor_value("regen")
 	value = value + managers.player:upgrade_value("player", tostring(armor_data or managers.blackmarket:equipped_armor(true)) .. "_armor_regen_addend", 0)
-	value = value * (suppressed and suppression_mul or 1)
+	value = value * suppression_mul
 	return value
 end
 

@@ -54,7 +54,7 @@ function SkillTreeTweakData:init()
 				"player_level_11_edr_addend",
 				"player_level_11_hp_addend",
 				"player_level_11_movement_addend",
-				"player_level_11_stamina_addend"
+				"player_level_11_stamina_multiplier"
 			},
 			cost = self.costs.hightierpro
 		}

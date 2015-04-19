@@ -18,11 +18,12 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 	end
 	self._item_bought = nil
 	self._panel = self._ws:panel():panel({})
-	self._panel:set_h(self._panel:h() - 40)
+	self._panel:set_h(self._panel:h() + 40)--- 40)
 	self._fullscreen_panel = self._fullscreen_ws:panel():panel({layer = 40})
 	self:set_layer(45)
 	self._disabled_panel = self._fullscreen_panel:panel({layer = 100})
 	WalletGuiObject.set_wallet(self._panel)
+	WalletGuiObject.move_wallet(0, -40)
 	self._data = component_data or self:_start_page_data()
 	self._node:parameters().menu_component_data = self._data
 	if self._data.init_callback_name then
@@ -64,7 +65,7 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 	})
 	self:make_fine_text(self._panel:child("back_button"))
 	self._panel:child("back_button"):set_right(self._panel:w())
-	self._panel:child("back_button"):set_bottom(self._panel:h())
+	self._panel:child("back_button"):set_bottom(self._panel:h() - 80)
 	self._panel:child("back_button"):set_visible(managers.menu:is_pc_controller())
 	self._pages = #self._data > 1 or self._data.show_tabs
 	local grid_panel_w = self._panel:w() * WIDTH_MULTIPLIER
@@ -100,11 +101,13 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 	self:make_fine_text(self._title_text)
 	self._tab_scroll_panel = self._panel:panel({
 		w = grid_panel_w,
-		y = top_padding + 1
+		y = top_padding + 1,
+		h = self._panel:h() - 80
 	})
 	self._tab_area_panel = self._panel:panel({
 		w = grid_panel_w,
-		y = top_padding + 1
+		y = top_padding + 1,
+		h = self._panel:h() - 80
 	})
 	self._tab_scroll_table = {
 		panel = self._tab_scroll_panel
@@ -592,13 +595,13 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 			x = info_box_panel:x(),
 			y = info_box_panel:y() - 40,
 			w = info_box_panel:w(),
-			h = info_box_panel:h() + 120
+			h = info_box_panel:h() + 1200
 		})
 		self._detection_panel = self._panel:panel({
 			name = "suspicion_panel",
 			layer = 1,
 			x = info_box_panel:x(),
-			y = info_box_panel:y() + 330,
+			y = info_box_panel:y(),-- + 330,
 			w = info_box_panel:w(),
 			h = 64
 		})
@@ -608,8 +611,8 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 			w = info_box_panel:w(),
 			h = 136
 		})
-		self._weapon_info_panel:set_h(info_box_panel:h() - self._btn_panel:h() - 8 - self._detection_panel:h() - 8 + 40) 
-		self._detection_panel:set_y(self._weapon_info_panel:bottom() + 88)
+		self._weapon_info_panel:set_h(info_box_panel:h() - self._btn_panel:h() - 8 - self._detection_panel:h() - 8 + 1120) 
+		self._detection_panel:set_y(self._weapon_info_panel:bottom())-- + 88)
 		self._btn_panel:set_top(self._detection_panel:bottom() + 48)
 		self._weapon_info_border = BoxGuiObject:new(self._weapon_info_panel, {
 			sides = {
@@ -716,7 +719,7 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 		self._info_texts = {}
 		self._info_texts_panel = self._panel:panel({
 			x = info_box_panel:x() + 10,
-			y = info_box_panel:y() - 40, --+ 10,
+			y = info_box_panel:y() - 80,--40, --+ 10,
 			w = info_box_panel:w() - 20,
 			h = info_box_panel:h() - 20 - real_small_font_size * 3 + 100
 		})
@@ -865,9 +868,9 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 			self._stats_panel = self._panel:panel({
 				layer = 1,
 				x = info_box_panel:x() + 10,
-				y = info_box_panel:y() + 8,-- + 58,
+				y = info_box_panel:y() - 32,-- + 8,-- + 58,
 				w = info_box_panel:w() - 20,
-				h = info_box_panel:h() - 84
+				h = info_box_panel:h() - 64--84
 			})
 			local panel = self._stats_panel:panel({
 				layer = 1,
@@ -1072,9 +1075,9 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 				for i, stat in ipairs(self._armor_stats_shown) do
 					panel = self._armor_stats_panel:panel({
 						layer = 1,
-						x = 0,
+						x = 4,
 						y = y,
-						w = self._armor_stats_panel:w(),
+						w = self._armor_stats_panel:w() + 8,
 						h = 20
 					})
 					if math.mod(i, 2) == 0 and not panel:child(tostring(i)) then
@@ -1089,16 +1092,22 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 					for _, column in ipairs(text_columns) do
 						text_panel = panel:panel({
 							layer = 0,
-							x = x,
-							w = column.size,
+							x = x + 4,
+							w = column.size + 8,
 							h = panel:h()
 						})
 						local size_mul = 1
 						if column.name == "name" then
-							if stat.name == "regen" or stat.name == "ammo_mul" then
-								size_mul = 0.875 
-							elseif stat.name == "deflect_min_dmg" or stat.name == "deflect_min_procent" or stat.name == "deflect_max_dmg" or stat.name == "deflect_max_procent" or stat.name == "explosion_damage_reduction" then
+							if stat.name == "ammo_mul" then
+								size_mul = 0.825 
+							elseif stat.name == "regen" then
+								size_mul = 0.8
+							elseif stat.name == "deflect_min_dmg" or stat.name == "deflect_min_procent" or stat.name == "deflect_max_dmg" or stat.name == "deflect_max_procent" then
 								size_mul = 0.725
+							elseif stat.name == "jump_speed_multiplier" then
+								size_mul = 0.65
+							elseif stat.name == "explosion_damage_reduction" then
+								size_mul = 0.5
 							elseif stat.name == "hdr_min_dmg" or stat.name == "hdr_min_procent" or stat.name == "hdr_max_dmg" or stat.name == "hdr_max_procent" then
 								size_mul = 1
 							end
@@ -1112,7 +1121,7 @@ function BlackMarketGui:_setup(is_start_page, component_data)
 							blend_mode = column.blend,
 							color = column.color or tweak_data.screen_colors.text
 						})
-						x = x + column.size
+						x = x + column.size + 4
 						if column.name == "total" then
 							text_panel:set_x(190)
 						end
@@ -1423,10 +1432,10 @@ function BlackMarketGui:_get_armor_stats(name)
 			local base = tweak_data.player.damage.ARMOR_INIT
 			local mod = managers.player:body_armor_value("armor", upgrade_level)
 			base_stats[stat.name] = {
-				value = math.round((base + mod) * tweak_data.gui.stats_present_multiplier)
+				value = (base + mod) * tweak_data.gui.stats_present_multiplier
 			}
 			skill_stats[stat.name] = {
-				value = math.round((base_stats[stat.name].value + managers.player:body_armor_skill_addend(name) * tweak_data.gui.stats_present_multiplier) * managers.player:body_armor_skill_multiplier() - base_stats[stat.name].value)
+				value = (base_stats[stat.name].value + managers.player:body_armor_skill_addend(name) * tweak_data.gui.stats_present_multiplier) * managers.player:body_armor_skill_multiplier() - base_stats[stat.name].value
 			}
 		elseif stat.name == "concealment" then
 			base_stats[stat.name] = {
@@ -1438,20 +1447,20 @@ function BlackMarketGui:_get_armor_stats(name)
 		elseif stat.name == "movement" then
 			local base = tweak_data.player.movement_state.standard.movement.speed.STANDARD_MAX / 100 * tweak_data.gui.stats_present_multiplier
 			local movement_penalty = managers.player:body_armor_value("movement", upgrade_level)
-			local base_value = math.round(movement_penalty * base)
+			local base_value = movement_penalty * base
 			base_stats[stat.name] = {value = base_value}
 			local skill_mod = managers.player:movement_speed_multiplier(false, false, upgrade_level)
-			local skill_value = math.round(skill_mod * base) + managers.player:upgrade_value("player", name .. "_movement_addend", 0) - base_value
+			local skill_value = skill_mod * base - base_value
 			skill_stats[stat.name] = {value = skill_value}
 			skill_stats[stat.name].skill_in_effect = skill_value > 0
 		elseif stat.name == "dodge" then
 			local base = 0
 			local mod = managers.player:body_armor_value("dodge", upgrade_level)
 			base_stats[stat.name] = {
-				value = math.round((base + mod) * 100)
+				value = (base + mod) * 100
 			}
 			skill_stats[stat.name] = {
-				value = math.round(managers.player:skill_dodge_chance(false, false, false, name, detection_risk) * 100)
+				value = managers.player:skill_dodge_chance(false, false, false, name, detection_risk) * 100
 			}
 		elseif stat.name == "damage_shake" then
 			local base = tweak_data.gui.armor_damage_shake_base
@@ -1461,24 +1470,24 @@ function BlackMarketGui:_get_armor_stats(name)
 			local mod_value = base / mod - base_value
 			local skill_value = base / mod / skill - base_value - mod_value + managers.player:upgrade_value("player", "damage_shake_addend", 0)
 			base_stats[stat.name] = {
-				value = math.round((base_value + mod_value) * tweak_data.gui.stats_present_multiplier)
+				value = (base_value + mod_value) * tweak_data.gui.stats_present_multiplier
 			}
 			skill_stats[stat.name] = {
-				value = math.round(skill_value * tweak_data.gui.stats_present_multiplier)
+				value = skill_value * tweak_data.gui.stats_present_multiplier
 			}
 		elseif stat.name == "stamina" then
 			local stamina_data = tweak_data.player.movement_state.stamina
 			local base = stamina_data.STAMINA_INIT
 			local mod = managers.player:body_armor_value("stamina", upgrade_level)
-			local skill = managers.player:stamina_multiplier()
+			local skill = managers.player:stamina_multiplier(upgrade_level)
 			local base_value = base
 			local mod_value = base * mod - base_value
-			local skill_value = base * mod * skill - base_value - mod_value + managers.player:upgrade_value("player", name .. "_stamina_multiplier", 0)
+			local skill_value = base * mod * skill - base_value - mod_value-- + managers.player:upgrade_value("player", name .. "_stamina_multiplier", 0)
 			base_stats[stat.name] = {
-				value = math.round(base_value + mod_value)
+				value = base_value + mod_value
 			}
 			skill_stats[stat.name] = {
-				value = math.round(skill_value)
+				value = skill_value
 			}
 
 
@@ -1496,16 +1505,16 @@ function BlackMarketGui:_get_armor_stats(name)
 			local base = managers.player:body_armor_value("deflect", upgrade_level)[1][1] * 10
 			local skill = 0
 			base_stats[stat.name] = {
-				value = math.round(base)
+				value = base
 			}
 			skill_stats[stat.name] = {
-				value = math.round(base * skill)
+				value = base * skill
 			}
 		elseif stat.name == "deflect_min_procent" then
 			local base = managers.player:body_armor_value("deflect", upgrade_level)[1][2] * 100
 			local skill = managers.player:upgrade_value("player", name .. "_deflect_chance_addend", 0)
 			base_stats[stat.name] = {
-				value = math.round(base)
+				value = base
 			}
 			skill_stats[stat.name] = {
 				value = skill
@@ -1514,16 +1523,16 @@ function BlackMarketGui:_get_armor_stats(name)
 			local base = managers.player:body_armor_value("deflect", upgrade_level)[2][1] * 10
 			local skill = 0
 			base_stats[stat.name] = {
-				value = math.round(base)
+				value = base
 			}
 			skill_stats[stat.name] = {
-				value = math.round(base * skill)
+				value = base * skill
 			}
 		elseif stat.name == "deflect_max_procent" then
 			local base = managers.player:body_armor_value("deflect", upgrade_level)[2][2] * 100
 			local skill = managers.player:upgrade_value("player", name .. "_deflect_chance_addend", 0)
 			base_stats[stat.name] = {
-				value = math.round(base)
+				value = base
 			}
 			skill_stats[stat.name] = {
 				value = skill
@@ -1532,37 +1541,37 @@ function BlackMarketGui:_get_armor_stats(name)
 			local base = managers.player:body_armor_value("health_damage_reduction", upgrade_level)[1][1] * 10
 			local skill = 0
 			base_stats[stat.name] = {
-				value = math.round(base)
+				value = base
 			}
 			skill_stats[stat.name] = {
-				value = math.round(base * skill)
+				value = base * skill
 			}
 		elseif stat.name == "hdr_min_procent" then
 			local base = managers.player:body_armor_value("health_damage_reduction", upgrade_level)[1][2] * 100
 			local skill = 0
 			base_stats[stat.name] = {
-				value = math.round(base)
+				value = base
 			}
 			skill_stats[stat.name] = {
-				value = math.round(base * skill)
+				value = base * skill
 			}
 		elseif stat.name == "hdr_max_dmg" then
 			local base = managers.player:body_armor_value("health_damage_reduction", upgrade_level)[2][1] * 10
 			local skill = 0
 			base_stats[stat.name] = {
-				value = math.round(base)
+				value = base
 			}
 			skill_stats[stat.name] = {
-				value = math.round(base * skill)
+				value = base * skill
 			}
 		elseif stat.name == "hdr_max_procent" then
 			local base = managers.player:body_armor_value("health_damage_reduction", upgrade_level)[2][2] * 100
 			local skill = 0
 			base_stats[stat.name] = {
-				value = math.round(base)
+				value = base
 			}
 			skill_stats[stat.name] = {
-				value = math.round(base * skill)
+				value = base * skill
 			}
 		elseif stat.name == "explosion_damage_reduction" then
 			local base = managers.player:body_armor_value("explosion_damage_reduction", upgrade_level) * 100

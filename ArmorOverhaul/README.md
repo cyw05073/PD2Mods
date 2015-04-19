@@ -25,7 +25,7 @@ When your armor is down, you'll no longer be that crawling glass cannon desepera
 <h5>4. Ammo bonus/malus</h5>
 
 Some armors get an ammo pool bonus/malus. This is done for balancing purposes. Some armors will be too usefull if they had ammo bonus (think about an ICTV tank with 25% bonus ammo from the armor).
-Currently, two armors affect ammo pool (Suit reduces it by 25%, Flak Jacket increases it by 50%).
+Currently, two armors affect ammo pool (Suit reduces it by 25%, Flak Jacket increases it by 35% and Lightweight Tactical Vest by 40%).
 
 <h5>5. Explosive Damage Reduction</h5>
 
@@ -61,23 +61,49 @@ The heavier your armor, the lowest you jump.
 
 
 <h4>What to do ?</h4>
-Just put the lib folder in PAYDAY 2 root folder (usually C:\Program Files (x86)\Steam\SteamApps\common\PAYDAY2\)
 
-If you want to choose the scripts you'll run, you can delete ArmorOverhaul.lua, run a PD2Hook.yml and persistscript or postrequire the files you want to run. So the following is optionnal.
+<h5>BLT Hook users</h5>
+Put the content of the BLT Hook folder in PAYDAY 2 root folder (usually C:\Program Files (x86)\Steam\SteamApps\common\PAYDAY2\\)
 
-What to persistscript ?
-- default_upgrades.lua to activate the ammo bonus/malus
+<h5>Non-BLT Hook users (HoxHUD or old Hook)</h5>
+Just put the content of the HoxHUD Hook folder in PAYDAY 2 root folder
 
-What to postrequire ?
-- playerdamage.lua to lib/units/beings/player/playerdamage
-- upgradestweakdata.lua to lib/tweak_data/upgradestweakdata
-- blackmarketgui.lua to lib/managers/menu/blackmarketgui
-- armortext.lua to lib/managers/localizationmanager
+Note: if you already use DMCWO (or another mod touching to localizationmanager), put the content of the method (all the armortext[...] = ...) into the corresponding script (in realnames.lua for DMCWO e.g.) and rename the armortext accordingly. Even if ArmorOverhaul has a DMCWO support, it seems that DMCWO's localization method overrides ArmorOverhaul one, that's why you need to copy/paste.
 
-Note: if you already use DMCWO (or another mod touching to localizationmanager), put the content of the method (all the armortext[...] = ...) into the corresponding script (in realnames.lua for DMCWO e.g.) and rename the armortext accordingly.
-localizationmanager.lua (located in managers) is here to fill in the new stat names in the blackmarket, introduced with blackmarketgui.lua (located in managers/lua). Those two scripts are optional, but recommended.
+
 
 <h4>Known bugs</h4>
 
-In the blackmarket, the health bonus isn't visible.
-In the blackmarket, the detection meter goes behind stats.
+In the skill trees, the Ace line of description tweaked skills is blue, even when not buyable.
+
+
+
+<h4>Changelog</h4>
+
+<h5>v0.5</h5>
+
+<h6>upgradestweakdata.lua</h6>
+
+- Decreased Flak Jacket ammo boost from 50% to 35%
+- Increased Lightweight Tactical Vest ammo boost from 25% to 40%
+- Increased Thin Suit jump speed multiplier from 1.05 to 1.1
+- Increased EOD Suit jump speed multiplier from 0.15 to 0.2
+
+<h6>playerdamage.lua</h6>
+
+- Increased Armor suppression time from 3s to 10s (this value is still variable depending on your armor regen skills)
+
+<h6>playermanager.lua</h6>
+
+- Altered Armor regen value according to the suppression ratio
+	- The instant you are suppressed, your armor stops to regen, but it slowly regain its potential as long as the suppression progressively vanishes
+
+<h6>localizationmanager.lua</h6>
+
+- Added support for DMCWO (cause why not)
+
+<h6>blackmarketgui.lua</h6>
+
+- Fixed HP bonus being invisible and detection ring being rendered behind armor stats
+	- The blackmarket can seem a bit wide, but now it is completely useable
+	- Spendable skill points can overlay the selection grid

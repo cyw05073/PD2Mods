@@ -50,10 +50,13 @@ function PlayerDamage:update(unit, t, dt)
 
 
 
-			if self._armor_suppress then
+			if self._armor_suppress and self._armor_suppress > 0 then
 				self._armor_suppress = self._armor_suppress - dt
 			else
 				self._armor_suppress = 0
+			end
+			if not self._armor_suppress_MAX then
+				self._armor_suppress_MAX = 10 * managers.player:body_armor_regen_multiplier(alive(self._unit) and self._unit:movement():current_state()._moving)
 			end
 			local armor_data = managers.blackmarket:equipped_armor(true)
 			local hp_regen = dt * managers.player:hp_regen_value(armor_data)
@@ -67,7 +70,7 @@ function PlayerDamage:update(unit, t, dt)
 
 
 				if self:get_real_armor() < self:_max_armor() - 0.025 then
-					local regen = dt * managers.player:ap_regen_value(armor_data, self._armor_suppress > 0)
+					local regen = dt * managers.player:ap_regen_value(armor_data, self._armor_suppress / self._armor_suppress_MAX)
 					self:restore_armor(regen)
 					self._armor_regenerating = true
 				else
@@ -395,7 +398,10 @@ function PlayerDamage:_upd_suppression(t, dt)
 			if not self._armor_regenerating then
 				self:set_regenerate_timer_to_max()
 			else
-				self._armor_suppress = 3 * managers.player:body_armor_regen_multiplier(alive(self._unit) and self._unit:movement():current_state()._moving)
+				if not self._armor_suppress_MAX then
+					self._armor_suppress_MAX = 10 * managers.player:body_armor_regen_multiplier(alive(self._unit) and self._unit:movement():current_state()._moving)
+				end
+				self._armor_suppress = self._armor_suppress_MAX
 			end
 		end
 		if data.value then
