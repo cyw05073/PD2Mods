@@ -1,0 +1,14 @@
+{
+	"name" : "numericHP",
+	"description" : "Adds numerical values for health and armor in the HUD"
+	"author" : "lekousin",
+	"contact" : "http://steamcommunity.com/profiles/76561198048005289/",
+	"version" : "1.0",
+	"priority" : 68,
+	"hooks" : [
+		{ 	
+			"hook_id" : "lib/managers/hud/hudteammate",
+			"script_path" : "lua/hudteammate.lua"
+		}
+	]
+}
