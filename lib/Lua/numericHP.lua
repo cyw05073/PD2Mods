@@ -1,0 +1,1 @@
+RegisterScript("lib/Lua/numericHP/HUDTeammate.lua", 2, "lib/managers/hud/hudteammate")
