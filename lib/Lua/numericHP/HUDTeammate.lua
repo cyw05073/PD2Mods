@@ -805,8 +805,10 @@ function HUDTeammate:set_health(data)
 	local radial_health_panel = teammate_panel:child("radial_health_panel")
 	local radial_health = radial_health_panel:child("radial_health")
 	local red = data.current / data.total
-	if red < radial_health:color().red then
-		self:_damage_taken()
+	if not ArmorOverhaul then
+		if red < radial_health:color().red then
+			self:_damage_taken()
+		end
 	end
 	radial_health:set_color(Color(1, red, 1, 1))
 
